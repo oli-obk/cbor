@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error","Represents all possible errors that can occur when serializing or deserializing a value."]],"type":[["Result","Helper alias for Result objects that return a JSON Error."]]});

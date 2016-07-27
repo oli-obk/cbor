@@ -26,6 +26,8 @@ pub enum Error {
     StopCode,
     /// The data source contains trailing bytes after all values were read.
     TrailingBytes,
+    /// Tried to serialize a tag of non integral type
+    BadTag,
     #[doc(hidden)]
     __Nonexhaustive,
 }
@@ -40,6 +42,7 @@ impl StdError for Error {
             Error::Eof => "unexpected end of file",
             Error::StopCode => "unexpected stop code",
             Error::TrailingBytes => "unexpected trailing bytes",
+            Error::BadTag => "got a non-integral tag",
             Error::__Nonexhaustive => unreachable!(),
         }
     }

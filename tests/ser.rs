@@ -1,3 +1,5 @@
+#![feature(specialization)]
+
 extern crate serde;
 extern crate serde_cbor;
 
@@ -6,6 +8,37 @@ use std::collections::HashMap;
 use serde::Serializer;
 use serde_cbor::{to_vec, from_slice};
 use serde_cbor::ser;
+
+#[test]
+fn test_tagging() {
+    struct TaggedValue(String);
+
+    trait SerializeTag<S: serde::Serialize>: serde::Serializer {
+        fn serialize_tag(&mut self, value: &S) -> Result<(), <Self as serde::Serializer>::Error>;
+    }
+
+    impl<S: serde::Serializer> SerializeTag<TaggedValue> for S {
+        default fn serialize_tag(&mut self, _value: &TaggedValue) -> Result<(), S::Error> {
+            unimplemented!()
+        }
+    }
+
+    impl<W: std::io::Write> SerializeTag<TaggedValue> for ser::Serializer<W> {
+        fn serialize_tag(&mut self, value: &TaggedValue) -> Result<(), Self::Error> {
+            use serde::Serializer;
+            self.serialize_tagged_value(42, &value.0)
+        }
+    }
+
+    impl serde::Serialize for TaggedValue {
+        fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+            where S: serde::Serializer,
+        {
+            serializer.serialize_tag(self)
+        }
+    }
+    assert_eq!(&to_vec(&TaggedValue("foo".to_string())).unwrap()[..], b"\xD8\x2A\x63foo");
+}
 
 #[test]
 fn test_string() {

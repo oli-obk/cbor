@@ -257,7 +257,7 @@ impl<R: Read> de::Deserializer for Deserializer<R> {
 
     #[inline]
     fn deserialize_enum<V: EnumVisitor>(&mut self,
-            _enum: &'static str, 
+            _enum: &'static str,
             _variants: &'static [&'static str],
             mut visitor: V) -> Result<V::Value> {
         let first = try!(self.read_u8());
@@ -291,6 +291,9 @@ impl<R: Read> de::Deserializer for Deserializer<R> {
             -> Result<V::Value> where V: Visitor {
         self.deserialize(visitor)
     }
+    fn deserialize_tagged_value<V: Deserialize>(&mut self) -> Result<V> {
+        unimplemented!()
+    }
 }
 
 impl<R: Read> Read for Deserializer<R> {
@@ -313,7 +316,7 @@ impl<'a, R: 'a + Read> CompositeVisitor<'a, R> {
             items: items,
         }
     }
-    
+
     fn _visit<T: Deserialize>(&mut self) -> Result<Option<T>> {
         match self.items {
             Some(0) => return Ok(None),
@@ -365,7 +368,7 @@ impl<'a, R: Read> de::VariantVisitor for CompositeVisitor<'a, R> {
     fn visit_variant<V: Deserialize>(&mut self) -> Result<V> {
         Deserialize::deserialize(self.de)
     }
-    
+
     fn visit_unit(&mut self) -> Result<()> {
         if self.items == Some(0) {
             Ok(())
@@ -373,7 +376,7 @@ impl<'a, R: Read> de::VariantVisitor for CompositeVisitor<'a, R> {
             Err(Error::Syntax)
         }
     }
-    
+
     fn visit_newtype<T: Deserialize>(&mut self) -> Result<T> {
         Deserialize::deserialize(self.de)
     }
@@ -385,7 +388,7 @@ impl<'a, R: Read> de::VariantVisitor for CompositeVisitor<'a, R> {
         let seq = CompositeVisitor::new(self.de, Some(len));
         visitor.visit_seq(seq)
     }
-    
+
     fn visit_struct<V: Visitor>(&mut self, _fields: &'static [&'static str], visitor: V)
             -> Result<V::Value> {
         de::Deserializer::deserialize(self.de, visitor)
